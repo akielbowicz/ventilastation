@@ -1,24 +1,20 @@
 from itertools import cycle
-#import pygameengine
-import pygletengine
+from struct import unpack
+from pygletengine import PygletEngine
 
-# from asciiart import AsciiArt
+LED_COUNT = 50
 
-# engine = AsciiArt()
+def line_iterator(filename):
+    with open(filename, 'rb') as f:
+        while True:
+            byte = f.read(4)
+            while byte != b"":
+                rgba = unpack('BBBB', byte)
+                #print(rgba)
+                byte = f.read(4)
+                yield rgba
+            f.seek(0)
 
-# c1 = [0, 255, 255, 255]
-# c2 = [255, 0, 255, 255]
-# c3 = [104, 121, 99, 255]
-
-# test_input = [
-#     [c1, c2, c2, c2, c3, c3],
-#     [c1, c2, c2, c3, c3, c3],
-#     [c1, c2, c2, c2, c3, c3],
-#     [c1, c1, c2, c2, c2, c3],
-#     [c1, c1, c1, c2, c2, c3],
-#     [c1, c1, c1, c2, c2, c3],
-#     [c1, c1, c2, c2, c2, c3],
-# ]
-
-# for line in cycle(test_input):
-#     engine.draw(line)
+# 'corazon.bytes'
+#PygletEngine(50, line_iterator('corazon.bytes'))
+PygletEngine(50, 128, line_iterator('mario128.bytes'))

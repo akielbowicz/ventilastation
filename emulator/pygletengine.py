@@ -8,69 +8,74 @@ window = pyglet.window.Window(config=Config(double_buffer=False))
 
 def change_colors(vertex_list, colors):
     i = 0
-    for col in colors:
-        vertex_list.colors[i:i+4] = col
+    for r, g, b, a in colors:
+        vertex_list.colors[i:i+4] = r, g, b, 255
         i += 4
 
-from itertools import chain
-
-led_count = 50
-led_dot = 3
-
-margin = 10
-led_size = min(window.width, window.height) / 2 - margin
-led_step = int(led_size / led_count)
-
-# pos_x = [0] * led_count
-# pos_y = range(0, led_step * led_count, led_step)
-# vertex_pos = chain.from_iterable(zip(pos_x, pos_y))
-
-vertex_pos = []
-for i in range(led_count):
-    vertex_pos.extend([0, led_step * i])
-
-vertex_list = pyglet.graphics.vertex_list(
-    led_count,
-    ('v2i', vertex_pos),
-    ('c4B', (0, 0, 0, 255) * led_count))
-
-angle = 0
+LED_DOT = 3
+LED_SIZE = min(window.width, window.height) / 1.9
+R_ALPHA = max(window.height, window.width)
+REVS_PER_SECOND = 10
 
 glLoadIdentity()
 glEnable(GL_BLEND)
 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 glTranslatef(window.width / 2, window.height / 2, 0)
 
-# fps_display = pyglet.clock.ClockDisplay()
 
-R_ALPHA = max(window.height, window.width)
+class PygletEngine():
+    def __init__(self, led_count, steps, line_iterator):
+        self.led_count = led_count
+        self.line_iterator = line_iterator
+        self.step_angle = 360 / steps
+        self.cur_angle = 0
+        led_step = int(LED_SIZE / led_count)
 
-revs_per_second = 10
+        vertex_pos = []
+        for i in range(led_count):
+            vertex_pos.extend([0, led_step * i])
 
+        self.vertex_list = pyglet.graphics.vertex_list(
+            led_count,
+            ('v2i', vertex_pos),
+            ('c4B', (0, 0, 0, 255) * led_count))
 
-colors = [[255, 0, 0, 255]] * led_count
+        glRotatef(180, 0, 0, 1)
 
-def get_colors():
-    return colors
+        pyglet.clock.schedule_interval(self.update, 1/200)
+        pyglet.app.run()
 
-def update(dt):
-    angle = 360 * revs_per_second * dt
+    def get_colors(self):
+        # return [[255, 0, 0, 255]] * self.led_count
+        return [next(self.line_iterator) for _ in range(self.led_count)]
 
-    glRotatef(angle, 0, 0, 1)
-    glColor4f(0, 0, 0, 0.01)
+    def draw_black(self):
+        glColor4f(0, 0, 0, 0.01)
+        pyglet.graphics.draw_indexed(4, pyglet.gl.GL_TRIANGLES,
+                                     [0, 1, 2, 0, 2, 3],
+                                     ('v2i', (R_ALPHA, -R_ALPHA,
+                                              R_ALPHA, R_ALPHA,
+                                              -R_ALPHA, R_ALPHA,
+                                              -R_ALPHA, -R_ALPHA)))
 
-    pyglet.graphics.draw_indexed(4, pyglet.gl.GL_TRIANGLES,
-                                 [0, 1, 2, 0, 2, 3],
-                                 ('v2i', (R_ALPHA, -R_ALPHA,
-                                          R_ALPHA, R_ALPHA,
-                                          -R_ALPHA, R_ALPHA,
-                                          -R_ALPHA, -R_ALPHA)))
+    def update(self, dt):
+        #angle = 360 * REVS_PER_SECOND * dt
 
-    pyglet.gl.glPointSize(led_dot)
-    change_colors(vertex_list, get_colors())
-    vertex_list.draw(GL_POINTS)
-    glFlush()
+        frac = 1
+        angle = self.step_angle / frac
 
-pyglet.clock.schedule_interval(update, 1/200)
+#        if self.cur_angle > self.step_angle:
+        colors = self.get_colors()
+        change_colors(self.vertex_list, colors)
 
-pyglet.app.run()
+        for i in range(frac):
+            glRotatef(angle, 0, 0, 1)
+            self.draw_black()
+            pyglet.gl.glPointSize(LED_DOT)
+            self.vertex_list.draw(GL_POINTS)
+
+        # self.cur_angle += angle
+        # if self.cur_angle > self.step_angle:
+        #     self.cur_angle -= self.step_angle
+
+        glFlush()
