@@ -3,19 +3,16 @@ from pyglet.gl import *
 
 window = pyglet.window.Window(config=Config(double_buffer=False))
 
-# platform = pyglet.window.get_platform()
-# display = platform.get_default_display()
-
 def change_colors(vertex_list, colors):
     i = 0
     for r, g, b, a in colors:
         vertex_list.colors[i:i+4] = r, g, b, 255
         i += 4
 
-LED_DOT = 3
+LED_DOT = 4
 LED_SIZE = min(window.width, window.height) / 1.9
 R_ALPHA = max(window.height, window.width)
-REVS_PER_SECOND = 10
+REVS_PER_SECOND = 1
 
 glLoadIdentity()
 glEnable(GL_BLEND)
@@ -59,23 +56,20 @@ class PygletEngine():
                                               -R_ALPHA, -R_ALPHA)))
 
     def update(self, dt):
-        #angle = 360 * REVS_PER_SECOND * dt
+        angle = 360 * REVS_PER_SECOND * dt
+        if angle > 20:
+            return
 
-        frac = 1
-        angle = self.step_angle / frac
+        if self.cur_angle > self.step_angle:
+            self.cur_angle = self.cur_angle % self.step_angle
+            colors = self.get_colors()
+            change_colors(self.vertex_list, colors)
 
-#        if self.cur_angle > self.step_angle:
-        colors = self.get_colors()
-        change_colors(self.vertex_list, colors)
+        self.draw_black()
+        pyglet.gl.glPointSize(LED_DOT)
+        self.vertex_list.draw(GL_POINTS)
+        glRotatef(angle, 0, 0, 1)
 
-        for i in range(frac):
-            glRotatef(angle, 0, 0, 1)
-            self.draw_black()
-            pyglet.gl.glPointSize(LED_DOT)
-            self.vertex_list.draw(GL_POINTS)
-
-        # self.cur_angle += angle
-        # if self.cur_angle > self.step_angle:
-        #     self.cur_angle -= self.step_angle
+        self.cur_angle += angle
 
         glFlush()

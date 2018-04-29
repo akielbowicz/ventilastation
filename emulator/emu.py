@@ -17,4 +17,4 @@ def line_iterator(filename):
 
 # 'corazon.bytes'
 #PygletEngine(50, line_iterator('corazon.bytes'))
-PygletEngine(50, 128, line_iterator('mario128.bytes'))
+PygletEngine(50, 128, line_iterator('../files/corgibus128.bytes'))
