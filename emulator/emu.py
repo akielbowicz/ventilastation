@@ -1,5 +1,4 @@
 import socket
-from itertools import cycle
 from struct import unpack
 from pygletengine import PygletEngine
 
