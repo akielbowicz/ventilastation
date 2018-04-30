@@ -1,4 +1,6 @@
 import socket
+import sys
+from itertools import cycle
 from struct import unpack
 from pygletengine import PygletEngine
 
@@ -30,5 +32,22 @@ def sock_iterator():
         yield line_data_to_rgba(data)
 
 
-PygletEngine(50, 128, file_iterator('../files/corgibus128.bytes'))
-#PygletEngine(50, 128, sock_iterator())
+filename = '-'
+if len(sys.argv) >= 2:
+    filename = sys.argv[1]
+
+if filename == '-':
+    iterator = sock_iterator()
+else:
+    iterator = file_iterator(filename)
+
+led_count = 50
+if len(sys.argv) >= 3:
+    led_count = int(sys.argv[2])
+
+steps = 128
+if len(sys.argv) >= 4:
+    steps = int(sys.argv[3])
+
+
+PygletEngine(led_count, steps, iterator)
