@@ -12,7 +12,7 @@ def change_colors(vertex_list, colors):
 LED_DOT = 4
 LED_SIZE = min(window.width, window.height) / 1.9
 R_ALPHA = max(window.height, window.width)
-REVS_PER_SECOND = 1
+REVS_PER_SECOND = 10
 
 glLoadIdentity()
 glEnable(GL_BLEND)
@@ -39,7 +39,7 @@ class PygletEngine():
 
         glRotatef(180, 0, 0, 1)
 
-        pyglet.clock.schedule_interval(self.update, 1/200)
+        pyglet.clock.schedule_interval(self.update, 1/400)
         pyglet.app.run()
 
     def get_colors(self):
