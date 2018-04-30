@@ -1,11 +1,12 @@
 import esp
 import time
-from machine import Pin #, IDLE, SLEEP, DEEPSLEEP
+from machine import Pin
 import micropython
 micropython.alloc_emergency_exception_buf(100)
 
 clock = Pin(14, Pin.OUT)
 data = Pin(13, Pin.OUT)
+led = Pin(2, Pin.OUT)
 hall = Pin(5, Pin.IN, Pin.PULL_UP)
 
 buf0 = bytearray(288*4)
@@ -13,17 +14,20 @@ buf = memoryview(buf0)[0:200]
 buf2 = bytearray(288*4)
 raw = open("pictures/mario128.bytes", "rb")
 
-def nextframe():
+print("hola pycamp")
+def nextframe(*args):
     raw.readinto(buf)
     esp.apa102_write(clock, data, buf)
 
-def vsync():
-    micropython.schedule(nextframe)
+def vsync(_):
+    led.value(not led.value())
+    micropython.schedule(nextframe, 0)
 
-hall.irq(vsync) #, trigger=Pin.IRQ_FALLING) #, wake=IDLE | SLEEP | DEEPSLEEP)
+hall.irq(vsync, trigger=Pin.IRQ_FALLING) #, wake=IDLE | SLEEP | DEEPSLEEP)
 
-while True:
-    pass
+led.value(not led.value())
+#while True:
+    #pass
 
 #@micropython.viper
 def change():
@@ -35,8 +39,10 @@ def change():
             while hall.value():
                 True
         raw.seek(0)
-    esp.apa102_write(clock, data, buf2)
 
-change()
+time.sleep(10)
+esp.apa102_write(clock, data, buf2)
+
+#change()
     
-print("hola pycamp")
+print("chau pycamp")
