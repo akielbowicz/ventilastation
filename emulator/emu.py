@@ -5,7 +5,7 @@ from struct import unpack
 from pygletengine import PygletEngine
 
 LED_COUNT = 50
-UDP_IP = "127.0.0.1"
+UDP_IP = "192.168.4.1"
 UDP_PORT = 5005
 
 def line_data_to_rgba(data):
@@ -32,7 +32,8 @@ def sock_iterator():
         yield line_data_to_rgba(data)
 
 
-filename = '-'
+filename = '../files/megaman/megaman.bytes'
+#filename = '-'
 if len(sys.argv) >= 2:
     filename = sys.argv[1]
 
@@ -45,9 +46,8 @@ led_count = 50
 if len(sys.argv) >= 3:
     led_count = int(sys.argv[2])
 
-steps = 128
+steps = 32
 if len(sys.argv) >= 4:
     steps = int(sys.argv[3])
-
 
 PygletEngine(led_count, steps, iterator)
