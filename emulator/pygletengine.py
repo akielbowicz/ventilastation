@@ -60,8 +60,10 @@ class PygletEngine():
             return
 
         if self.cur_angle > self.step_angle:
+            for i in range(int(self.cur_angle / self.step_angle)):
+                colors = self.get_colors()
+
             self.cur_angle = self.cur_angle % self.step_angle
-            colors = self.get_colors()
             change_colors(self.vertex_list, colors)
 
         self.draw_black()
