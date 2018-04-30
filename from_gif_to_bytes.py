@@ -21,6 +21,6 @@ def from_gif_to_bytes(file_path):
         temp_file = ''.join([temp_path, '/', file_name, '.png'])
         frame.save(temp_file)
         out_file = ''.join([output_folder_name, '/', file_name, '.bytes'])
-        print(index, file_name, temp_file, out_file,sep='\n')
+        # print(index, file_name, temp_file, out_file,sep='\n')
         with open(out_file, 'wb') as f:
             f.write(to_led(temp_file))
