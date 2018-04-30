@@ -19,10 +19,12 @@ def to_led(path=None, n_led=50, n_ang = 32):
 
     led = []
     
+    intensidad = [ int(31 * i**2 / n_led**2) for i in range(n_led)]
+    
     for m in range(0,n_ang):
         for n in range(0,n_led):
             x = center_x + int(rad * (n+1)/n_led * cos(m * 2*pi/n_ang)) 
             y = center_y + int(rad * (n+1)/n_led * sin(m * 2*pi/n_ang))
-            tupla = tuple(gamma(int(255 * g)) for g in img[x,y,0:3]) + (31,)
+            tupla = tuple(gamma(int(255 * g)) for g in img[x,y,0:3]) + (intensidad[n],)
             led.append(pack('BBBB', *tupla))
     return b''.join(led)
