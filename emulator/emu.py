@@ -1,20 +1,34 @@
-from itertools import cycle
+import socket
 from struct import unpack
 from pygletengine import PygletEngine
 
 LED_COUNT = 50
+UDP_IP = "127.0.0.1"
+UDP_PORT = 5005
 
-def line_iterator(filename):
+def line_data_to_rgba(data):
+    line_bytes = bytearray(data)
+    bytes_list = (line_bytes[i:i+4] for i  in range(0, len(line_bytes), 4))
+    rgba_list = (unpack('BBBB', byte) for byte in bytes_list)
+    return rgba_list
+
+def file_iterator(filename):
     with open(filename, 'rb') as f:
         while True:
-            byte = f.read(4)
-            while byte != b"":
-                rgba = unpack('BBBB', byte)
-                #print(rgba)
-                byte = f.read(4)
-                yield rgba
+            data = f.read(4*LED_COUNT)
+            while data != b"":
+                yield line_data_to_rgba(data)
+                data = f.read(4*LED_COUNT)
             f.seek(0)
 
-# 'corazon.bytes'
-#PygletEngine(50, line_iterator('corazon.bytes'))
-PygletEngine(50, 128, line_iterator('../files/corgibus128.bytes'))
+def sock_iterator():
+    sock = socket.socket(socket.AF_INET,
+                         socket.SOCK_DGRAM)
+    sock.bind((UDP_IP, UDP_PORT))
+    while True:
+        data, _ = sock.recvfrom(1024)
+        yield line_data_to_rgba(data)
+
+
+PygletEngine(50, 128, file_iterator('../files/corgibus128.bytes'))
+#PygletEngine(50, 128, sock_iterator())

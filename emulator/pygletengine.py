@@ -43,8 +43,7 @@ class PygletEngine():
         pyglet.app.run()
 
     def get_colors(self):
-        # return [[255, 0, 0, 255]] * self.led_count
-        return [next(self.line_iterator) for _ in range(self.led_count)]
+        return next(self.line_iterator)
 
     def draw_black(self):
         glColor4f(0, 0, 0, 0.01)
