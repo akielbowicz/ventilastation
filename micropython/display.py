@@ -57,7 +57,7 @@ def loop():
             esp.apa102_write(clock, data, buf)
             now = ticks_us()
             sleep_us(ticks_diff(next_column_time, now))
-            next_column_time = ticks_add(now, segment_duration)
+            next_column_time = ticks_add(tick_us(), segment_duration)
         raw.seek(0)
 
 esp.apa102_write(clock, data, buf2)
