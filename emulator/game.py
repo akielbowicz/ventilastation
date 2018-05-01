@@ -50,7 +50,10 @@ class Drawable():
             b = a + self.height * 4
             buf_a = self.posicion[1]*4
             buf_b = buf_a + self.height*4
-            _buffer[buf_a:buf_b] = self._buffer[a:b]
+            #_buffer[buf_a:buf_b] = self._buffer[a:b]
+            for i in range(0, b-a, 4):
+                if self._buffer[a+i+3] != 0:
+                    _buffer[buf_a+i: buf_a+i+4] = self._buffer[a+i: a+i+4]
 
 def game_iterator():
     fd = open('data/fondo.dat', 'rb')
@@ -60,7 +63,7 @@ def game_iterator():
     fd2 = open('data/character.dat', 'rb')
     sprite_buffer = fd2.read()
 
-    character = Drawable(sprite_buffer, (64, 10), 24, 24)
+    character = Drawable(sprite_buffer, (64, 8), 24, 24)
     while True:
         for scan_position in range(128):
             if scan_position == 0:
