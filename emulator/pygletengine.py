@@ -12,7 +12,7 @@ def change_colors(vertex_list, colors):
 LED_DOT = 4
 LED_SIZE = min(window.width, window.height) / 1.9
 R_ALPHA = max(window.height, window.width)
-REVS_PER_SECOND = 10
+REVS_PER_SECOND = 5
 
 glLoadIdentity()
 glEnable(GL_BLEND)
@@ -46,7 +46,7 @@ class PygletEngine():
         return next(self.line_iterator)
 
     def draw_black(self):
-        glColor4f(0, 0, 0, 0.01)
+        glColor4f(0, 0, 0, 0.005)
         pyglet.graphics.draw_indexed(4, pyglet.gl.GL_TRIANGLES,
                                      [0, 1, 2, 0, 2, 3],
                                      ('v2i', (R_ALPHA, -R_ALPHA,
