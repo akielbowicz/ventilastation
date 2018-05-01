@@ -1,26 +1,11 @@
 import esp
 from utime import ticks_us, ticks_add, ticks_diff, sleep, sleep_us
 from machine import Pin
-import micropython
-micropython.alloc_emergency_exception_buf(100)
-
-import socket
-
-def send_data(file_name=None,ip='192.168.4.2',port=9999):
-    s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-
-    raw = open(file_name,"rb")
-    buf0 = bytearray(288*4)
-    buf = memoryview(buf0)
-    raw.readinto(buf)
-
-    s.sendto(buf,(ip,port))
 
 COLUMNS = const(32)
 
-clock = Pin(14, Pin.OUT)
-data = Pin(13, Pin.OUT)
+clock = Pin(13, Pin.OUT)
+data = Pin(14, Pin.OUT)
 hall = Pin(5, Pin.IN, Pin.PULL_UP)
 led = Pin(2, Pin.OUT)
 
@@ -44,20 +29,16 @@ buf = bytearray(50*4)
 buf2 = bytearray(288*4)
 raw = open("pictures/mario32.bytes", "rb")
 
-
-def nextframe(*args):
-    raw.readinto(buf)
-    esp.apa102_write(clock, data, buf)
-
 def loop():
     next_column_time = 0
-    for j in range(100):
+    #for j in range(100):
+    while True:
         for i in range(COLUMNS):
             raw.readinto(buf)
             esp.apa102_write(clock, data, buf)
             now = ticks_us()
             sleep_us(ticks_diff(next_column_time, now))
-            next_column_time = ticks_add(now, segment_duration)
+            next_column_time = ticks_add(ticks_us(), segment_duration)
         raw.seek(0)
 
 esp.apa102_write(clock, data, buf2)
