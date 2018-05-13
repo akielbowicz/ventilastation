@@ -3,7 +3,8 @@
 # times 6 possible rotations
 # times 2 mirrored options = 768 bytes
 
-transformations = [
+import array
+transformations = array.array("b", [
   # Mirrored: no
   # Rotated: 0
   0b000000, 0b000001, 0b000010, 0b000011, 0b000100, 0b000101, 0b000110, 0b000111,
@@ -114,5 +115,5 @@ transformations = [
   0b001010, 0b001011, 0b101010, 0b101011, 0b011010, 0b011011, 0b111010, 0b111011,
   0b000110, 0b000111, 0b100110, 0b100111, 0b010110, 0b010111, 0b110110, 0b110111,
   0b001110, 0b001111, 0b101110, 0b101111, 0b011110, 0b011111, 0b111110, 0b111111,
-]
+])
 

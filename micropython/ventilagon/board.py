@@ -1,26 +1,27 @@
 from pattern import Pattern
 import machine
 
-NUM_COLUMNS = 6
-NUM_ROWS = 32
-ROW_SHIP = 3
-ROW_COLISION = 7
+NUM_COLUMNS = const(6)
+NUM_ROWS = const(32)
+ROW_SHIP = const(3)
+ROW_COLISION = const(7)
+
+buffer = bytearray(NUM_ROWS)
 
 class CircularBuffer:
     def __init__(self):
-        self.buffer = bytearray(NUM_ROWS)
         self.first_row = 0
         self.reset()
 
     def reset(self):
         self.first_row = 0
         for n in range(NUM_ROWS):
-            self.buffer[n] = 0
+            buffer[n] = 0
 
     def push_front(self, row):
         try:
             state = machine.disable_irq()
-            self.buffer[self.first_row] = row
+            buffer[self.first_row] = row
             self.first_row = (self.first_row - 1) % NUM_ROWS
         finally:
             machine.enable_irq(state)
@@ -28,14 +29,16 @@ class CircularBuffer:
     def push_back(self, row):
         try:
             state = machine.disable_irq()
-            self.buffer[self.first_row] = row
+            buffer[self.first_row] = row
             self.first_row = (self.first_row + 1) % NUM_ROWS
         finally:
             machine.enable_irq(state)
 
-    def get_row(self, row_num):
-        pos = (row_num + self.first_row) % NUM_ROWS
-        return self.buffer[pos]
+    @micropython.viper
+    def get_row(self, row_num: int) -> int:
+        b32 = ptr8(buffer)
+        pos = (row_num + int(self.first_row)) % NUM_ROWS
+        return b32[pos]
 
 class Board:
     def __init__(self):
@@ -113,13 +116,18 @@ if __name__ == "__main__":
 
     step = board.step
     get_row = board.visible.get_row
+
+    @micropython.viper
+    def draw_rows():
+        for n in range(NUM_ROWS):
+            b = get_row(n)
+        #print("{0:06b}".format(b))
+
     @timed_function
     def loop():
         for n in range(1000):
             step()
-            for n in range(NUM_ROWS):
-                b = get_row(n)
-            #print("{0:06b}".format(b))
+            draw_rows()
 
     loop()
 

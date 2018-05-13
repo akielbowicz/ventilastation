@@ -1,4 +1,5 @@
 from ucollections import namedtuple
+from array import array
 
 Level = namedtuple("Level", ("step_delay", "block_height", "rotation_speed",
 "song", "color", "bg1", "bg2", "patterns", "drift_calculator"))
@@ -6,7 +7,7 @@ Level = namedtuple("Level", ("step_delay", "block_height", "rotation_speed",
 def no_drift(drift_speed):
     return 0
 
-solo_A = [
+solo_A = array("b", [
     10,
     0b010101,
     0b000000,
@@ -18,9 +19,9 @@ solo_A = [
     0b000000,
     0b000000,
     0b000000,
-]
+])
 
-solo_B = [
+solo_B = array("b", [
     9,
     0b010101,
     0b010101,
@@ -31,9 +32,9 @@ solo_B = [
     0b000000,
     0b000000,
     0b000000,
-]
+])
 
-solo_C = [
+solo_C = array("b", [
     10,
     0b010010,
     0b000000,
@@ -45,9 +46,9 @@ solo_C = [
     0b000000,
     0b000000,
     0b000000,
-]
+])
 
-solo_D = [
+solo_D = array("b", [
     9,
     0b010010,
     0b010010,
@@ -58,9 +59,9 @@ solo_D = [
     0b000000,
     0b000000,
     0b000000,
-]
+])
 
-triple_C = [
+triple_C = array("b", [
     12,
     0b101111,
     0b000000,
@@ -74,9 +75,9 @@ triple_C = [
     0b000000,
     0b000000,
     0b000000,
-]
+])
 
-bat = [
+bat = array("b", [
     15,
     0b011111,
     0b001110,
@@ -93,9 +94,9 @@ bat = [
     0b000000,
     0b000000,
     0b000000,
-]
+])
 
-whirpool = [
+whirpool = array("b", [
     18,
     0b011111,
     0b001111,
@@ -115,9 +116,9 @@ whirpool = [
     0b000000,
     0b000000,
     0b000000,
-]
+])
 
-ladder = [
+ladder = array("b", [
     16,
     0b110110,
     0b010010,
@@ -135,7 +136,7 @@ ladder = [
     0b000000,
     0b000000,
     0b000000,
-]
+])
 
 patterns_level1 = [
     solo_A,
