@@ -121,7 +121,7 @@ if __name__ == "__main__":
     def draw_rows():
         for n in range(NUM_ROWS):
             b = get_row(n)
-        #print("{0:06b}".format(b))
+        print("{0:06b}".format(b))
 
     @timed_function
     def loop():

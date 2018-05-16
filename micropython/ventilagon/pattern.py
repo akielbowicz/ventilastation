@@ -1,17 +1,20 @@
 from levels import current_level
 from transformations import transformations
 import urandom
+import utime
+
 
 seed = 0
 def randrange(low, high):
     global seed
     _range = high - low
-    seed += urandom.getrandbits(4)
+    seed += urandom.getrandbits(32)
     return (seed % _range) + low
     
 
 class Pattern:
     def __init__(self):
+        urandom.seed(utime.ticks_us())
         self.randomize()
         self.block_height = current_level.block_height
         self.current_height = self.block_height
