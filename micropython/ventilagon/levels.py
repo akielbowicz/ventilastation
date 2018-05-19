@@ -150,7 +150,7 @@ patterns_level1 = [
 ]
 
 levels = [
-    Level(50000, 4, 5, '1', 0x0000ff, 0x000000, 0x000001, patterns_level1, no_drift),
+    Level(50000, 4, 5, '1', 0xff00ff00, 0xff000000, 0xff001100, patterns_level1, no_drift),
 ]
 
 current_level = levels[0]

@@ -1,4 +1,4 @@
-from pattern import Pattern
+from ventilagon.pattern import Pattern
 import machine
 
 NUM_COLUMNS = const(6)
@@ -6,101 +6,121 @@ NUM_ROWS = const(32)
 ROW_SHIP = const(3)
 ROW_COLISION = const(7)
 
-buffer = bytearray(NUM_ROWS)
+circular_buffer = bytearray(NUM_ROWS)
+cb_first_row = 0
 
-class CircularBuffer:
-    def __init__(self):
-        self.first_row = 0
-        self.reset()
+def cb_reset():
+    global cb_first_row
+    cb_first_row = 0
+    for n in range(NUM_ROWS):
+        circular_buffer[n] = 0
 
-    def reset(self):
-        self.first_row = 0
-        for n in range(NUM_ROWS):
-            buffer[n] = 0
+def cb_push_front(row):
+    try:
+        global cb_first_row
+        state = machine.disable_irq()
+        circular_buffer[cb_first_row] = row
+        cb_first_row = (cb_first_row - 1) % NUM_ROWS
+    finally:
+        machine.enable_irq(state)
 
-    def push_front(self, row):
-        try:
-            state = machine.disable_irq()
-            buffer[self.first_row] = row
-            self.first_row = (self.first_row - 1) % NUM_ROWS
-        finally:
-            machine.enable_irq(state)
+def cb_push_back(row):
+    try:
+        global cb_first_row
+        state = machine.disable_irq()
+        circular_buffer[cb_first_row] = row
+        cb_first_row = (cb_first_row + 1) % NUM_ROWS
+    finally:
+        machine.enable_irq(state)
 
-    def push_back(self, row):
-        try:
-            state = machine.disable_irq()
-            buffer[self.first_row] = row
-            self.first_row = (self.first_row + 1) % NUM_ROWS
-        finally:
-            machine.enable_irq(state)
+@micropython.viper
+def cb_get_row(row_num: int) -> int:
+    cb8 = ptr8(circular_buffer)
+    pos = (row_num + int(cb_first_row)) % NUM_ROWS
+    return cb8[pos]
 
-    @micropython.viper
-    def get_row(self, row_num: int) -> int:
-        b32 = ptr8(buffer)
-        pos = (row_num + int(self.first_row)) % NUM_ROWS
-        return b32[pos]
+pat = Pattern()
 
-class Board:
-    def __init__(self):
-        self.visible = CircularBuffer()
-        self.pat = Pattern()
-        self.reset()
+def board_reset():
+    pat.randomize()
+    cb_reset()
 
-    def reset(self):
-        self.pat.randomize()
-        self.visible.reset()
+def fill_patterns():
+    row_num = 20
+    while row_num != NUM_ROWS:
+        pat.randomize()
 
-    def fill_patterns(self):
-        row_num = 20
-        while row_num != NUM_ROWS:
-            self.pat.randomize()
+        while not pat.finished():
+            cb_push_back(pat.next_row())
+            row_num += 1
+            if row_num == NUM_ROWS:
+                break
 
-            while not pat.finished():
-                self.visible.push_back(self.pat.next_row())
-                row_num += 1
-                if row_num == NUM_ROWS:
-                    break
+def colision(pos, num_row):
+    # la nave esta en la misma fila
+    real_pos = (pos + nave_calibrate + SUBDEGREES / 2) & SUBDEGREES_MASK
+    ship_column = (real_pos * NUM_COLUMNS) / SUBDEGREES
+    row_ship = cb_get_row(num_row)
+    mask = 1 << ship_column
+    return row_ship & mask
 
-    def colision(self, pos, num_row):
-        # la nave esta en la misma fila
-        real_pos = (pos + nave_calibrate + SUBDEGREES / 2) & SUBDEGREES_MASK
-        ship_column = (real_pos * NUM_COLUMNS) / SUBDEGREES
-        row_ship = self.visible.get_row(num_row)
-        mask = 1 << ship_column
-        return row_ship & mask
+def step():
+    cb_push_back(pat.next_row())
+    if pat.finished():
+        pat.randomize()
 
-    def step(self):
-        self.visible.push_back(self.pat.next_row())
-        if self.pat.finished():
-            #print("randomizando!")
-            self.pat.randomize()
+def step_back():
+    cb_push_front(0)
 
-    def step_back(self):
-        self.visible.push_front(0)
+def win_reset():
+    pat.randomize()
 
-    def win_reset(self):
-        self.pat.randomize()
+def win_step_back():
+    cb_push_front(self.pat.next_row())
+    if pat.finished():
+        pat.randomize()
 
-    def win_step_back(self):
-        self.visible.push_front(self.pat.next_row())
-        if self.pat.finished():
-            self.pat.randomize()
+def draw_column(column):
+    mask = 1 << column
+    ledbar.clear()
 
-    def draw_column(self, column):
-        mask = 1 << column
-        ledbar.clear()
+    # always paint the innermost circle
+    ledbar.draw(0, True, True)
 
-        # always paint the innermost circle
-        ledbar.draw(0, True, True)
+    for n in range(1, NUM_ROWS):
+        row = cb_get_row(n)
+        value = row & mask
+        ledbar.draw(n, value, column & 1)
 
-        for n in range(1, NUM_ROWS):
-            row = self.visible.get_row(n)
-            value = row & mask
-            ledbar.draw(n, value, column & 1)
+    ledbar.update();
 
-        ledbar.update();
+@micropython.viper
+def render(buffer, index):
+    mask = int(1 << int(index))
+    fg0 = int(current_level.color)
+    bg1 = int(current_level.bg1)
+    bg2 = int(current_level.bg2)
+    b32 = ptr32(buffer)
+    multicolored = False
+    alt_column = int(index) & 1
 
-board = Board()
+    # always paint the innermost circle
+    b32[0] = fg0
+
+    for n in range(1, NUM_ROWS):
+        row = cb_get_row(n)
+        value = 1 & mask
+        if value:
+            #if num_row == ROW_SHIP:
+            #    c = RED
+            #if multicolored:
+            #    c = colors[((num_row>>2)+(alt_column<<1))%6]
+            #else:
+            color = fg0
+        else:
+            color = bg1 if alt_column else bg2
+
+        b32[n] = color
 
 if __name__ == "__main__":
     import utime
@@ -114,13 +134,10 @@ if __name__ == "__main__":
             return result
         return new_func
 
-    step = board.step
-    get_row = board.visible.get_row
-
     @micropython.viper
     def draw_rows():
         for n in range(NUM_ROWS):
-            b = get_row(n)
+            b = cb_get_row(n)
         print("{0:06b}".format(b))
 
     @timed_function
