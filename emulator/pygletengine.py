@@ -36,7 +36,6 @@ class PygletEngine():
     def __init__(self, led_count, line_iterator, vsync, keyhandler, revs_per_second):
         self.led_count = led_count
         self.line_iterator = line_iterator
-        self.cur_angle = 0
         self.total_angle = 0
         self.vsync = vsync
         self.keyhandler = keyhandler
@@ -108,10 +107,13 @@ class PygletEngine():
 
         self.draw_black()
         pyglet.gl.glPointSize(LED_DOT)
-        self.vertex_list.draw(GL_POINTS)
-        glRotatef(-angle, 0, 0, 1)
 
-        self.cur_angle += angle
+        ROT=4
+        frac_angle = -angle/ROT
+        for n in range(ROT):
+            self.vertex_list.draw(GL_POINTS)
+            glRotatef(frac_angle, 0, 0, 1)
+
         self.total_angle += angle
 
         if self.total_angle > 360:
