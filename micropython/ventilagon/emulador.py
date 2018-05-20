@@ -19,13 +19,12 @@ sockrecv.bind(sockrecv_addr)
 
 def write():
     socksend.sendto(buffer, socksend_addr)
-    sleep(1/128/5)
 
 def clear():
     for n in range(0, len(buffer), 4):
-        buffer[n+0] = 0
         buffer[n+1] = 0
         buffer[n+2] = 0
+        buffer[n+3] = 0
     write()
 
 def loop():

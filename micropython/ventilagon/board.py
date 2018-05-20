@@ -2,7 +2,8 @@ from ventilagon.pattern import Pattern
 import machine
 
 NUM_COLUMNS = const(6)
-NUM_ROWS = const(32)
+BASE = const(5)
+NUM_ROWS = const(52 - BASE)
 ROW_SHIP = const(3)
 ROW_COLISION = const(7)
 
@@ -16,8 +17,8 @@ def cb_reset():
         circular_buffer[n] = 0
 
 def cb_push_front(row):
+    global cb_first_row
     try:
-        global cb_first_row
         state = machine.disable_irq()
         circular_buffer[cb_first_row] = row
         cb_first_row = (cb_first_row - 1) % NUM_ROWS
@@ -25,19 +26,19 @@ def cb_push_front(row):
         machine.enable_irq(state)
 
 def cb_push_back(row):
+    global cb_first_row
     try:
-        global cb_first_row
         state = machine.disable_irq()
         circular_buffer[cb_first_row] = row
         cb_first_row = (cb_first_row + 1) % NUM_ROWS
     finally:
         machine.enable_irq(state)
 
-@micropython.viper
-def cb_get_row(row_num: int) -> int:
-    cb8 = ptr8(circular_buffer)
-    pos = (row_num + int(cb_first_row)) % NUM_ROWS
-    return cb8[pos]
+#@micropython.viper
+#def cb_get_row(row_num: int) -> int:
+#    cb8 = ptr8(circular_buffer)
+#    pos = (row_num + int(cb_first_row)) % NUM_ROWS
+#    return cb8[pos]
 
 pat = Pattern()
 
@@ -92,24 +93,38 @@ def draw_column(column):
         value = row & mask
         ledbar.draw(n, value, column & 1)
 
-    ledbar.update();
+    ledbar.update()
+
+colores = [
+    0x00ff00ff,
+    0xff0000ff,
+    0x0000ffff,
+    0xffff00ff,
+    0x00ffffff,
+    0xff00ffff,
+    0xffffffff
+]
 
 @micropython.viper
-def render(buffer, index):
-    mask = int(1 << int(index))
-    fg0 = int(current_level.color)
+def render(buffer: ptr32, index: int, first_row: int):
+    mask = 1 << index
+    #fg0 = int(current_level.color)
+    fg0 = int(colores[index])
     bg1 = int(current_level.bg1)
     bg2 = int(current_level.bg2)
     b32 = ptr32(buffer)
+    cb8 = ptr8(circular_buffer)
     multicolored = False
-    alt_column = int(index) & 1
+    alt_column = index & 1
 
     # always paint the innermost circle
-    b32[0] = fg0
+    b32[BASE] = fg0
+    #print(first_row)
 
     for n in range(1, NUM_ROWS):
-        row = cb_get_row(n)
-        value = 1 & mask
+        row = cb8[(n + first_row) % NUM_ROWS]
+        #row = int(cb_get_row(n))
+        value = row & mask
         if value:
             #if num_row == ROW_SHIP:
             #    c = RED
@@ -120,7 +135,7 @@ def render(buffer, index):
         else:
             color = bg1 if alt_column else bg2
 
-        b32[n] = color
+        b32[BASE+n] = color
 
 if __name__ == "__main__":
     import utime
