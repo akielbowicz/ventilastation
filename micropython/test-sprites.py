@@ -3,6 +3,7 @@ from micropython import mem_info
 from spritelib.spritelib import *
 #from ventilagon import ventilador
 import ventilagon.emulador as ventilador
+from ventilagon import io
 
 COLUMNS = const(128)
 
@@ -31,7 +32,7 @@ def recalc(this_turn):
     step()
     #print(last_turn_duration)
 
-ventilador.vsync_handler = recalc
+io.vsync_handler = recalc
 
 def loop():
     global index
@@ -43,7 +44,7 @@ def loop():
             sleep_us(ticks_diff(next_column_time, ticks_us()))
             index = int(index) + 1
             next_column_time = ticks_add(last_turn, segment_duration * index)
-        ventilador.loop()
+        io.loop()
 
 ventilador.clear()
 try:
