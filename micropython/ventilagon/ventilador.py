@@ -1,3 +1,4 @@
+import usocket
 from machine import Pin, SPI
 from utime import ticks_us
 from micropython import schedule
@@ -33,6 +34,3 @@ def clear():
         buffer[n+1] = 0
         buffer[n+2] = 0
     write()
-
-def loop():
-    pass

@@ -4,6 +4,7 @@ from ventilagon import board
 from ventilagon.board import *
 #from ventilagon import ventilador
 import ventilagon.emulador as ventilador
+from ventilagon import io
 from ventilagon.levels import current_level
 
 COLUMNS = const(6)
@@ -27,7 +28,7 @@ def recalc(this_turn):
     last_turn_duration = ticks_diff(this_turn, last_turn)
     last_turn = this_turn
 
-ventilador.vsync_handler = recalc
+io.vsync_handler = recalc
 
 def playstate_loop():
     global last_step, last_keycheck, ship_position
@@ -35,10 +36,10 @@ def playstate_loop():
 
     if ticks_diff(ticks_add(last_keycheck, 100), now) < 0:
         last_keycheck = now
-        if ventilador.left_pressed != ventilador.right_pressed:
-            if ventilador.left_pressed:
+        if io.left_pressed != io.right_pressed:
+            if io.left_pressed:
                 new_pos = ship_position - 1
-            if ventilador.right_pressed:
+            if io.right_pressed:
                 new_pos = ship_position + 1
 
             new_pos = (new_pos + SUBDEGREES) & SUBDEGREES_MASK
@@ -87,7 +88,7 @@ def loop():
     while True:
         now = ticks_us()
         display_tick(now)
-        ventilador.loop()
+        io.loop()
         playstate_loop()
         #if ventilador.down_pressed:
             #step()
