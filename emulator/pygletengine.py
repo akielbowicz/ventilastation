@@ -1,22 +1,9 @@
 import pyglet
 from pyglet.gl import *
 from pyglet.window import key
-from struct import unpack
+from struct import pack, unpack
 
 window = pyglet.window.Window(config=Config(double_buffer=False))
-
-def line_data_to_rgba(data):
-    line_bytes = bytearray(data)
-    bytes_list = (line_bytes[i:i+4] for i  in range(0, len(line_bytes), 4))
-    rgba_list = (unpack('BBBB', byte) for byte in bytes_list)
-    return rgba_list
-
-def change_colors(vertex_list, data):
-    colors = line_data_to_rgba(data)
-    i = 0
-    for a, b, g, r in colors:
-        vertex_list.colors[i:i+4] = r, g, b, 255
-        i += 4
 
 LED_DOT = 4
 LED_SIZE = min(window.width, window.height) / 1.9
@@ -55,6 +42,8 @@ class PygletEngine():
         self.keyhandler = keyhandler
         self.revs_per_second = revs_per_second
         led_step = int(LED_SIZE / led_count)
+        self.fmt_pack = ">" + "L" * led_count
+        self.fmt_unpack = "<" + "L" * led_count
 
         vertex_pos = []
         for i in range(led_count):
@@ -99,6 +88,14 @@ class PygletEngine():
                                               -R_ALPHA, R_ALPHA,
                                               -R_ALPHA, -R_ALPHA)))
 
+    def change_colors(self, colors):
+        # byteswap all longs
+        b = unpack(self.fmt_unpack, colors)
+        colors = pack(self.fmt_pack, *b)
+
+        self.vertex_list.colors[:] = colors
+        return
+
     def update(self, dt):
         angle = 360 * self.revs_per_second * dt
 
@@ -107,7 +104,7 @@ class PygletEngine():
             colors = c2
             c2 = self.get_colors()
         if colors:
-            change_colors(self.vertex_list, colors)
+            self.change_colors(colors)
 
         self.draw_black()
         pyglet.gl.glPointSize(LED_DOT)

@@ -3,7 +3,7 @@ import sys
 from itertools import cycle
 from pygletengine import PygletEngine
 
-LED_COUNT = 50
+LED_COUNT = 52
 UDP_IP = "127.0.0.1"
 UDP_PORT = 5005
 UDP_PORT_COMMANDS = 5225
