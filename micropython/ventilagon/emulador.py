@@ -44,5 +44,8 @@ def loop():
                     pass
                 elif b == 'R':
                     pass
+                else:
+                    pass
+                    #print("key", b)
     except OSError:
         pass

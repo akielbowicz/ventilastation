@@ -1,5 +1,6 @@
 import pyglet
 from pyglet.gl import *
+from pyglet.window import key
 from struct import unpack
 
 window = pyglet.window.Window(config=Config(double_buffer=False))
@@ -27,13 +28,31 @@ glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 glTranslatef(window.width / 2, window.height / 2, 0)
 
 
+key_press = {
+    key.LEFT: b'L',
+    key.RIGHT: b'R',
+    key.UP: b'U',
+    key.DOWN: b'D',
+    key.SPACE: b'S',
+}
+
+key_release = {
+    key.LEFT: b'l',
+    key.RIGHT: b'r',
+    key.UP: b'u',
+    key.DOWN: b'd',
+    key.SPACE: b's',
+}
+
+
 class PygletEngine():
-    def __init__(self, led_count, line_iterator, vsync, revs_per_second):
+    def __init__(self, led_count, line_iterator, vsync, keyhandler, revs_per_second):
         self.led_count = led_count
         self.line_iterator = line_iterator
         self.cur_angle = 0
         self.total_angle = 0
         self.vsync = vsync
+        self.keyhandler = keyhandler
         self.revs_per_second = revs_per_second
         led_step = int(LED_SIZE / led_count)
 
@@ -48,10 +67,22 @@ class PygletEngine():
 
         glRotatef(180, 0, 0, 1)
 
+
+        @window.event
+        def on_key_press(symbol, modifiers):
+            if symbol in key_press:
+                self.keyhandler(key_press[symbol])
+
+        @window.event
+        def on_key_release(symbol, modifiers):
+            if symbol in key_release:
+                self.keyhandler(key_release[symbol])
+
         pyglet.clock.schedule_interval(self.update, 1/10000)
         self.loop()
 
     def loop(self):
+        #pyglet.app.run()
         while True:
             pyglet.clock.tick()
             window.dispatch_events()

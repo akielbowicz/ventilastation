@@ -45,4 +45,4 @@ class Pattern:
     def finished(self):
         #print("finished?")
         #print(self.row, self.rows_len, self.current_height, self.block_height)
-        return (self.row >= self.rows_len) # and (self.current_height >= self.block_height)
+        return (self.row > self.rows_len) # and (self.current_height >= self.block_height)

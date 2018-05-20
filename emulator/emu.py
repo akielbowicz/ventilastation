@@ -57,4 +57,4 @@ revs_per_second = 5
 if len(sys.argv) >= 4:
     revs_per_second = float(sys.argv[3])
 
-PygletEngine(led_count, iterator, vsync, revs_per_second)
+PygletEngine(led_count, iterator, vsync, sock_send, revs_per_second)
