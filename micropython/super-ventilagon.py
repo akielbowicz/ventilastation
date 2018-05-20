@@ -2,7 +2,7 @@ from utime import ticks_us, ticks_add, ticks_diff, sleep_us
 from micropython import mem_info
 from ventilagon import board
 from ventilagon.board import *
-#import ventilagon.ventilador
+#from ventilagon import ventilador
 import ventilagon.emulador as ventilador
 from ventilagon.levels import current_level
 

@@ -1,4 +1,5 @@
 from machine import Pin, SPI
+from utime import ticks_us
 from micropython import schedule
 
 PIXELS = const(52)
