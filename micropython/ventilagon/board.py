@@ -6,6 +6,8 @@ BASE = const(5)
 NUM_ROWS = const(52 - BASE)
 ROW_SHIP = const(3)
 ROW_COLISION = const(7)
+SUBDEGREES = const(8192)
+SUBDEGREES_MASK = const(8191)
 
 circular_buffer = bytearray(NUM_ROWS)
 cb_first_row = 0
@@ -34,11 +36,11 @@ def cb_push_back(row):
     finally:
         machine.enable_irq(state)
 
-#@micropython.viper
-#def cb_get_row(row_num: int) -> int:
-#    cb8 = ptr8(circular_buffer)
-#    pos = (row_num + int(cb_first_row)) % NUM_ROWS
-#    return cb8[pos]
+@micropython.viper
+def cb_get_row(row_num: int) -> int:
+    cb8 = ptr8(circular_buffer)
+    pos = (row_num + int(cb_first_row)) % NUM_ROWS
+    return cb8[pos]
 
 pat = Pattern()
 
@@ -57,10 +59,10 @@ def fill_patterns():
             if row_num == NUM_ROWS:
                 break
 
-def colision(pos, num_row):
+def collision(pos, num_row):
     # la nave esta en la misma fila
-    real_pos = (pos + nave_calibrate + SUBDEGREES / 2) & SUBDEGREES_MASK
-    ship_column = (real_pos * NUM_COLUMNS) / SUBDEGREES
+    #real_pos = (pos + nave_calibrate + SUBDEGREES / 2) & SUBDEGREES_MASK
+    ship_column = int((pos * NUM_COLUMNS) / SUBDEGREES)
     row_ship = cb_get_row(num_row)
     mask = 1 << ship_column
     return row_ship & mask
@@ -104,12 +106,13 @@ colores = [
     0xff00ffff,
     0xffffffff
 ]
+RED = 0xff0000ff
 
 @micropython.viper
-def render(buffer: ptr32, index: int, first_row: int):
+def render(buffer: ptr32, index: int, first_row: int, show_ship: int):
     mask = 1 << index
-    #fg0 = int(current_level.color)
-    fg0 = int(colores[index])
+    fg0 = int(current_level.color)
+    #fg0 = int(colores[index])
     bg1 = int(current_level.bg1)
     bg2 = int(current_level.bg2)
     b32 = ptr32(buffer)
@@ -122,6 +125,9 @@ def render(buffer: ptr32, index: int, first_row: int):
     #print(first_row)
 
     for n in range(1, NUM_ROWS):
+        if show_ship and n == ROW_SHIP: # == :#num_row == int(ROW_SHIP) show_ship:
+            b32[BASE+n] = int(RED)
+            continue
         row = cb8[(n + first_row) % NUM_ROWS]
         #row = int(cb_get_row(n))
         value = row & mask

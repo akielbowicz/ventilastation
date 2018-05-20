@@ -16,6 +16,11 @@ sockrecv = usocket.socket(usocket.AF_INET, usocket.SOCK_DGRAM)
 sockrecv.setblocking(False)
 sockrecv.bind(sockrecv_addr)
 
+left_pressed = False
+right_pressed = False
+up_pressed = False
+down_pressed = False
+button_pressed = False
 
 def write():
     socksend.sendto(buffer, socksend_addr)
@@ -28,6 +33,7 @@ def clear():
     write()
 
 def loop():
+    global left_pressed, right_pressed, up_pressed, down_pressed, button_pressed
     try:
         buf = sockrecv.recv(1)
         if buf:
@@ -37,13 +43,25 @@ def loop():
                     if vsync_handler:
                         vsync_handler(ticks_us())
                 elif b == 'l':
-                    pass
+                    left_pressed = False
                 elif b == 'L':
-                    pass
+                    left_pressed = True
                 elif b == 'r':
-                    pass
+                    right_pressed = False
                 elif b == 'R':
-                    pass
+                    right_pressed = True
+                elif b == 'u':
+                    up_pressed = False
+                elif b == 'U':
+                    up_pressed = True
+                elif b == 'd':
+                    down_pressed = False
+                elif b == 'D':
+                    down_pressed = True
+                elif b == 'b':
+                    button_pressed = False
+                elif b == 'B':
+                    button_pressed = True
                 else:
                     pass
                     #print("key", b)

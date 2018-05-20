@@ -8,35 +8,89 @@ from ventilagon.levels import current_level
 
 COLUMNS = const(6)
 
-last_turn = ticks_us()
-segment_duration = 1000
+HALF_SHIP_WIDTH = const(50)
 
-index = 0
+last_step = 0
+last_keycheck = 0
+ship_showing = False
+last_column_drawn = 0
+
+last_turn = ticks_us()
+last_turn_duration = 10
+
+
+ship_position = 1024
 
 def recalc(this_turn):
     global last_turn
-    global segment_duration
-    global index
+    global last_turn_duration
     last_turn_duration = ticks_diff(this_turn, last_turn)
     last_turn = this_turn
-    segment_duration = min(int(last_turn_duration) // COLUMNS, 1000000)
-    index = 0
-    step()
 
 ventilador.vsync_handler = recalc
 
+def playstate_loop():
+    global last_step, last_keycheck, ship_position
+    now = ticks_us()
+
+    if ticks_diff(ticks_add(last_keycheck, 100), now) < 0:
+        last_keycheck = now
+        if ventilador.left_pressed != ventilador.right_pressed:
+            if ventilador.left_pressed:
+                new_pos = ship_position - 1
+            if ventilador.right_pressed:
+                new_pos = ship_position + 1
+
+            new_pos = (new_pos + SUBDEGREES) & SUBDEGREES_MASK
+
+            future_collision = board.collision(new_pos, ROW_SHIP)
+            if not future_collision:
+                ship_position = new_pos
+
+    if ticks_diff(ticks_add(last_step, current_level.step_delay), now) < 0:
+        if not board.collision(ship_position, ROW_SHIP+1):
+            board.step()
+            last_step = now
+        else:
+            # crash boom bang
+            pass
+
+def ship_on(current_pos):
+    #if calibrating:
+        # return board.collision(current_pos, ROW_SHIP)
+
+    if abs(ship_position - current_pos) < HALF_SHIP_WIDTH:
+        return True
+
+    if abs( (int(ship_position + SUBDEGREES / 2) & SUBDEGREES_MASK) -
+            (int(current_pos + SUBDEGREES / 2) & SUBDEGREES_MASK)
+        ) < HALF_SHIP_WIDTH:
+        return True
+
+    return False
+
+def display_tick(now):
+    global ship_showing, last_column_drawn
+    drift = 0
+    now_drift = ticks_diff(ticks_add(drift, now), last_turn)
+    current_pos = int(now_drift * SUBDEGREES / last_turn_duration) & SUBDEGREES_MASK
+    current_column = int(now_drift * NUM_COLUMNS / last_turn_duration) % NUM_COLUMNS
+    show_ship = ship_on(current_pos)
+    if show_ship != ship_showing or current_column != last_column_drawn:
+        board.render(ventilador.buffer, current_column, board.cb_first_row, show_ship)
+        ventilador.write()
+        ship_showing = show_ship
+        last_column_drawn = current_column
+
 def loop():
-    global index
     next_column_time = ticks_us()
     while True:
-        if index < COLUMNS:
-            board.render(ventilador.buffer, index, board.cb_first_row)
-            ventilador.write()
-            index = int(index) + 1
-            if index < COLUMNS:
-                next_column_time = ticks_add(last_turn, segment_duration * index)
-                sleep_us(ticks_diff(next_column_time, ticks_us()))
+        now = ticks_us()
+        display_tick(now)
         ventilador.loop()
+        playstate_loop()
+        #if ventilador.down_pressed:
+            #step()
 
 ventilador.clear()
 try:
