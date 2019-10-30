@@ -86,7 +86,7 @@ pyinotify==0.9.6
 PyIscsi==1.0
 pykickstart==2.41
 pylint==1.7.4
-pyOpenSSL==17.2.0
+pyOpenSSL==17.5.0
 pyparsing==2.1.10
 pyparted==3.11.0
 PySocks==1.6.7
